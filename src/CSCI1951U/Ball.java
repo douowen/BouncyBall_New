@@ -1,6 +1,7 @@
 package CSCI1951U;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Ball {
@@ -11,21 +12,19 @@ public class Ball {
     private double vy;
     private Color color;
     private int id;
+    private ArrayList<Ball> list;
 
     private final double SIZE = .05;
 
-    public Ball(int id) {
+    public Ball(int id, ArrayList<Ball> list) {
         this.startX = Math.random();
         this.startY = Math.random();
-//        this.vx = Math.random() * .01;
-//        this.vy = Math.random() * .01;
-//        this.startX = randomPos();
-//        this.startY = .95;
         this.vx = randomPos();
         this.vy = .023;
         this.radius = SIZE;
         this.color = randomColor();
         this.id = id;
+        this.list = list;
     }
 
     public int id() {
@@ -69,31 +68,42 @@ public class Ball {
         this.startY += y;
     }
 
-    public static void checkCollide(Ball p, Ball q) {
-        double psize = p.size();
-        double qsize = q.size();
-        if ((Math.abs((p.getX() + psize/2) - (q.getX() + qsize/2)) <= psize) && (Math.abs((p.getY() + psize/2) - (q.getY() + qsize/2)) <= psize)) {
+    public void updateBall() {
+        checkWall(this.vx, this.vy);
+        checkCollideMouse();
+        checkBallCollision();
+    }
 
-            p.setVX(-p.getVX());
-//            p.setVY(-p.getVY());
-            q.setVX(-q.getVX());
-//            q.setVY(-q.getVY());
-            p.setStart(p.getVX(), p.getVY());
-            q.setStart(q.getVX(), q.getVY());
+    public void checkBallCollision() {
+        for (Ball ball : this.list) {
+            if (ball.id() != this.id) {
+                double xx = Math.abs(this.startX - ball.getX());
+                double yy = Math.abs(this.startY - ball.getY());
+                double xy = Math.sqrt(xx * xx + yy * yy);
+                if (xy <= size() + ball.size()) {
+                    this.vx = -this.vx;
+                    ball.setVX(-ball.getVX());
+                    setStart(this.vx, this.vy);
+                    ball.setStart(ball.getVX(), ball.getVY());
+                }
+            }
         }
     }
 
     public void checkCollideMouse() {
-        if ((Math.abs((this.startX + this.radius/2) - (StdDraw.mouseX() + .08/2)) <= .08)
-                && (Math.abs((this.startY + this.radius/2) - (StdDraw.mouseY() + .08/2)) <= .08)) {
+        double xx = Math.abs(this.startX - StdDraw.mouseX());
+        double yy = Math.abs(this.startY - StdDraw.mouseY());
+        double xy = Math.sqrt(xx * xx + yy * yy);
+
+        if (xy <= size() + 0.08) {
             this.vx = -this.vx;
             this.vy = -this.vy;
             setStart(this.vx, this.vy);
+            setColor(randomColor());
         }
     }
 
     public void checkWall(double vx, double vy) {
-        // Change directions when collide the walls
         if (this.startX - this.radius + vx < -1.0 || this.startX + this.radius + vx > 1.0) {
             this.vx = -vx;
         }
@@ -103,31 +113,18 @@ public class Ball {
         }
 
         setStart(this.vx, this.vy);
-
-        // Change direction when collide with the player
-//        if (this.startX + this.radius + vx == StdDraw.mouseX() - .08 || this.startX - this.radius + vx == StdDraw.mouseX() + .08 ) {
-//            vx = -vx;
-//        }
-//        boolean touchTop = vy < this.startY - this.radius && this.startY - this.radius + vy < StdDraw.mouseY() + .01;
-//        boolean touchBottom = vy > this.startY + this.radius && this.startY + this.radius + vy > StdDraw.mouseY() - .01;
-//
-//        boolean touchInRange = this.startX + this.radius + vx > StdDraw.mouseX() - .08
-//                && this.startX + this.radius + vx < StdDraw.mouseX() + .08 ||
-//                this.startX - this.radius + vx < StdDraw.mouseX() + .08
-//                && this.startX - this.radius + vx > StdDraw.mouseX() - .08;
-//
-//        if ((touchTop || touchBottom) && touchInRange) {
-//            vy = -vy;
-//        }
-
     }
 
     public void setSize(double size) {
         this.radius = size;
     }
 
-    public void setColor(int r, int g, int b) {
-        this.color = new Color(r, g, b);
+    public void setColor(Color color) {
+        if (this.color.equals(color)) {
+            setColor(randomColor());
+        } else {
+            this.color = color;
+        }
     }
 
     private static Color randomColor() {
@@ -144,10 +141,5 @@ public class Ball {
 
     private double randomPos() {
         return ThreadLocalRandom.current().nextDouble(0, .05);
-    }
-
-    public static void draw(Ball ball) {
-        StdDraw.setPenColor(ball.getColor());
-        StdDraw.filledCircle(ball.getX(), ball.getY(), ball.size());
     }
 }
