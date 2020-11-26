@@ -1,1 +1,4 @@
 Use Shift + A to add ball to the window
+
+My Bouncy Ball program was implemented by importing the StdDraw library. It uses multithread to listen mouse events and key events already. 
+All those event listening events are synchronized. 
