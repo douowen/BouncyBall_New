@@ -1,9 +1,7 @@
 package CSCI1951U;
 
 import java.awt.Color;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.Random;
 
 public class BouncyBalls {
     private static final int WINDOW_SIZE = 960;
